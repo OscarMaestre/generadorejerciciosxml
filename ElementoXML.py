@@ -3,6 +3,48 @@
 
 ANY_TYPE="anyType"
 
+
+class TipoBasicoW3C(object):
+    def get_esquema(self):
+        plantilla="<xsd:element name=\"{0}\" type=\"{1}\" />"
+        descripcion="{0}".format(self.nombre_tipo_basico, self.nombre_elemento)
+        return descripcion
+    
+class TipoString(TipoBasicoW3C):
+    def __init__(self, nombre_elemento):
+        self.nombre_tipo_basico="string"
+        self.nombre_elemento=nombre_elemento
+        
+class TipoInteger(TipoBasicoW3C):
+    def __init__(self, nombre_elemento):
+        self.nombre_tipo_basico="integer"
+        self.nombre_elemento=nombre_elemento
+
+class TipoSimpleNumericoConRestriccion(TipoBasicoW3C):
+    def __init__(self, nombre_tipo, nombre_base):
+        self.nombre_tipo=nombre_tipo
+        self.nombre_base=nombre_base
+        self.minimo=None
+        self.maximo=None
+        
+    def add_minInclusive(self, valor):
+        self.minimo=valor
+    def add_maxInclusive(self, valor):
+        self.maximo=valor
+        
+    def get_esquema(self):
+        plantilla="""<xsd:simpleType name="{0}"><xsd:restriction base="{1}"><xsd:restriction>{2}{3}</xsd:simpleType>"""
+        minimo=""
+        if self.minimo!=None:
+            minimo="<xsd:minInclusive value=\"{0}\"/>"
+        minimo=""
+        if self.maximo!=None:
+            maximo="<xsd:maxInclusive value=\"{0}\"/>"
+
+        esquema=plantilla.format(self.nombre_tipo, self.nombre_base, minimo, maximo)
+        return esquema
+            
+        
 class Atributo(object):
     def __init__(self):
         self.optativo=False
