@@ -20,30 +20,98 @@ class TipoInteger(TipoBasicoW3C):
         self.nombre_tipo_basico="integer"
         self.nombre_elemento=nombre_elemento
 
-class TipoSimpleNumericoConRestriccion(TipoBasicoW3C):
+class TipoSimpleConRestriccion(TipoBasicoW3C):
     def __init__(self, nombre_tipo, nombre_base):
         self.nombre_tipo=nombre_tipo
         self.nombre_base=nombre_base
         self.minimo=None
         self.maximo=None
+        self.restricciones=[]
+    
+    def get_esquema(self):
+        plantilla="""<xsd:simpleType name="{0}"><xsd:restriction base="{1}">{2}</xsd:restriction></xsd:simpleType>"""
+        restricciones="".join(self.restricciones)
+
+        esquema=plantilla.format(self.nombre_tipo, self.nombre_base, restricciones)
+        return esquema
+    
+class TipoSimpleIntegerConRestriccion(TipoSimpleConRestriccion):
+    def __init__(self, nombre_tipo, nombre_base):
+        super().__init__(nombre_tipo, nombre_base)
         
     def add_minInclusive(self, valor):
         self.minimo=valor
+        xsd_minimo="<xsd:minInclusive value=\"{0}\"/>"
+        restriccion=xsd_minimo.format(self.minimo)
+        self.restricciones.append(restriccion)
+        
     def add_maxInclusive(self, valor):
         self.maximo=valor
+        xsd_maximo="<xsd:minInclusive value=\"{0}\"/>"
+        restriccion=xsd_maximo.format(self.maximo)
+        self.restricciones.append(restriccion)
         
+    
+        
+class TipoSimpleFloatConRestriccion(TipoSimpleIntegerConRestriccion):
+    def __init__(self, nombre_tipo):
+        super().__init__(nombre_tipo, "xsd:float")
+        
+    def add_digitos_totales(self, digitos_totales):
+        xsd_digitos="<xsd:totalDigits value=\"{0}\"/>"
+        restriccion=xsd_digitos.format(digitos_totales)
+        self.restricciones.append(restriccion)
+        
+    def add_digitos_decimales(self, digitos_decimales):
+        xsd_digitos="<xsd:fractionDigits value=\"{0}\"/>"
+        restriccion=xsd_digitos.format(digitos_decimales)
+        self.restricciones.append(restriccion)
+        
+class TipoSimpleStringConPatron(TipoSimpleConRestriccion):
+    def __init__(self, nombre_tipo):
+        super().__init__(nombre_tipo, "xsd:string")
+    def add_patron(self, patron):
+        xsd_patron="<xsd:pattern value=\"{0}\"/>"
+        restriccion=xsd_patron.format(patron)
+        self.restricciones.append(restriccion)
+        
+class TipoSimpleStringConEnumeraciones(TipoSimpleConRestriccion):
+    def __init__(self, nombre_tipo):
+        super().__init__(nombre_tipo, "xsd:string")
+    def add_valores(self, lista_valores):
+        plantilla_enumeration="<xsd:enumeration value=\"{0}\"/>"
+        for valor in lista_valores:
+            restriccion=plantilla_enumeration.format(valor)
+            self.restricciones.append(restriccion)
+        
+class TipoAtributo(object):
+    def __init__(self, nombre_atributo, nombre_base, obligatorio=False):
+        self.esquema=""
+        if obligatorio:
+            xsd_atributo="<xsd:attribute name=\"{0}\" type=\"{1}\" use=\"required\"/>"
+        else:
+            xsd_atributo="<xsd:attribute name=\"{0}\" type=\"{1}\"/>"
+        self.esquema=xsd_atributo.format(nombre_atributo, nombre_base)
     def get_esquema(self):
-        plantilla="""<xsd:simpleType name="{0}"><xsd:restriction base="{1}"><xsd:restriction>{2}{3}</xsd:simpleType>"""
-        minimo=""
-        if self.minimo!=None:
-            minimo="<xsd:minInclusive value=\"{0}\"/>"
-        minimo=""
-        if self.maximo!=None:
-            maximo="<xsd:maxInclusive value=\"{0}\"/>"
-
-        esquema=plantilla.format(self.nombre_tipo, self.nombre_base, minimo, maximo)
-        return esquema
-            
+        return self.esquema
+    
+class TipoComplejoConAtributos(object):
+    def __init__(self, nombre_tipo, nombre_base, lista_atributos):
+        xsd="""
+        <xsd:complexType name="{0}">
+        <xsd:simpleContent>
+            <xsd:extension base="{1}">
+                {2}
+            </xsd:extension>
+        </xsd:simpleContent>
+        </xsd:complexType>
+        """
+        atributos=""
+        for a in lista_atributos:
+            atributos+=a.get_esquema()
+        self.esquema=xsd.format(nombre_tipo, nombre_base, atributos)
+    def get_esquema(self):
+        return self.esquema
         
 class Atributo(object):
     def __init__(self):
