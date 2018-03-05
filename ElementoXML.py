@@ -113,6 +113,44 @@ class TipoComplejoConAtributos(object):
     def get_esquema(self):
         return self.esquema
         
+class TipoComplejo(object):
+    def __init__(self, nombre_tipo, restriccion, lista_atributos):
+        plantilla="""
+        <xsd:complexType name="{0}">
+            <xsd:complexContent>
+                <xsd:restriction base="xsd:anyType">
+                    {1}
+                </xsd:restriction>
+                {2}
+            </xsd:complexContent>
+        </xsd:complexType>
+        """
+        esquema_restriccion=restriccion.get_esquema()
+        lista_esquemas_atributos=[atributo.get_esquema for atributo in lista_atributos]
+        esquema_atributos="".join(lista_esquemas_atributos)
+        esquema=plantilla.format(nombre_tipo, restriccion, esquema_atributos)
+        
+        
+
+class RestriccionSecuenciaElementosXML(TipoBasicoW3C):
+    def __init__(self, lista_elementos):
+        plantilla="<xsd:sequence>{0}</xsd:sequence>"
+        elementos="".join(lista_elementos)
+        esquema=plantilla.format(elementos)
+        
+    def get_esquema(self):
+        return esquema
+    
+class RestriccionChoice(TipoBasicoW3C):
+    def __init__(self, lista_elementos):
+        plantilla="<xsd:choice maxOccurs=\"unbounded\">{0}</xsd:sequence>"
+        elementos="".join(lista_elementos)
+        esquema=plantilla.format(elementos)
+        
+    def get_esquema(self):
+        return esquema
+
+
 class Atributo(object):
     def __init__(self):
         self.optativo=False
@@ -173,3 +211,5 @@ class ElementoXML(object):
             cadenas_atributos.append
     def get_xml(self):
         return "<{0}>{1}</{0}>".format(etiqueta, contenido, etiqueta)
+    def get_xml_abreviado(self):
+        return "<{0}/>".format(etiqueta, contenido, etiqueta)
