@@ -2,13 +2,71 @@
 #coding=utf-8
 
 ANY_TYPE="anyType"
+from xml.dom.minidom import parseString
+from bs4 import BeautifulSoup
+from lxml import etree
 
 
+def reemplazar_xsd(cadena):
+    reemplazos=[ ("<complexType", "<xsd:complexType"), ("</complexType>", "</xsd:complexType>"),
+                 ("<simpleType", "<xsd:simpleType"), ("</simpleType>", "</xsd:simpleType>"), 
+                 ("<complexContent>", "<xsd:complexContent>"), ("</complexContent>", "</xsd:complexContent>"),
+                 ("<simpleContent>", "<xsd:simpleContent>"), ("</simpleContent>", "</xsd:simpleContent>"),
+                 ("<attribute", "<xsd:attribute"),
+                 ("<extension", "<xsd:extension"), ("</extension>", "</xsd:extension>"),
+                 ("<restriction", "<xsd:restriction"), ("</restriction>", "</xsd:restriction>"),
+                 ("<enumeration", "<xsd:enumeration"), ("</enumeration>", "</xsd:enumeration>"),
+                 ("<fractionDigits", "<xsd:fractionDigits"), ("</fractionDigits>", "</xsd:fractionDigits>"),
+                 ("<totalDigits", "<xsd:totalDigits"), ("</totalDigits>", "</xsd:totalDigits>"),
+                 ("<minInclusive", "<xsd:minInclusive"), ("</minInclusive>", "</xsd:minInclusive>"),
+                 ("<maxInclusive", "<xsd:maxInclusive"), ("</maxInclusive>", "</xsd:maxInclusive>"),
+                 ("<pattern", "<xsd:pattern"), ("</pattern>", "</xsd:pattern>"),
+                 
+                 
+                 ]
+    
+    for r in reemplazos:
+        cadena=cadena.replace(r[0], r[1])
+    return cadena
+
+def get_esquema_alineado3(objeto):
+    bs=BeautifulSoup(objeto.get_esquema(), 'xml')
+    cadena_xml= bs.prettify()
+    anadir_xsd=reemplazar_xsd(cadena_xml)
+    lineas=anadir_xsd.split("\n")
+    sin_prefijo="\n".join(lineas[1:])
+    return sin_prefijo
+
+def get_esquema_alineado2(objeto):
+    esquema=objeto.get_esquema()
+    root = etree.fromstring(esquema)
+    return etree.tostring(root, pretty_print=True)
+
+
+def get_esquema_alineado(objeto, separador="  "):
+    esquema=objeto.get_esquema().strip()
+    trozos=esquema.split(">")
+    trozos_con_fin=[(t+">").strip() for t in trozos]
+    trozos_esquema=trozos_con_fin[:-1]
+    nivel=-1
+    cadena_esquema=""
+    for t in trozos_esquema:
+        #Si es trozo de cierre
+        if t[0:2]=="</":
+            nivel=nivel-1
+        else:
+            nivel=nivel+1
+        cadena_esquema+=(separador*nivel) + t +"\n"
+    return cadena_esquema
+    
+    
 class TipoBasicoW3C(object):
     def get_esquema(self):
         plantilla="<xsd:element name=\"{0}\" type=\"{1}\" />"
         descripcion="{0}".format(self.nombre_tipo_basico, self.nombre_elemento)
         return descripcion
+    def get_esquema_alineado(self):
+        return get_esquema_alineado(self)
     
 class TipoString(TipoBasicoW3C):
     def __init__(self, nombre_elemento):
@@ -35,7 +93,7 @@ class TipoSimpleConRestriccion(TipoBasicoW3C):
         esquema=plantilla.format(self.nombre_tipo, self.nombre_base, restricciones)
         return esquema
     
-class TipoSimpleIntegerConRestriccion(TipoSimpleConRestriccion):
+class TipoSimpleNumericoConRestriccion(TipoSimpleConRestriccion):
     def __init__(self, nombre_tipo, nombre_base):
         super().__init__(nombre_tipo, nombre_base)
         
@@ -47,15 +105,9 @@ class TipoSimpleIntegerConRestriccion(TipoSimpleConRestriccion):
         
     def add_maxInclusive(self, valor):
         self.maximo=valor
-        xsd_maximo="<xsd:minInclusive value=\"{0}\"/>"
+        xsd_maximo="<xsd:maxInclusive value=\"{0}\"/>"
         restriccion=xsd_maximo.format(self.maximo)
         self.restricciones.append(restriccion)
-        
-    
-        
-class TipoSimpleFloatConRestriccion(TipoSimpleIntegerConRestriccion):
-    def __init__(self, nombre_tipo):
-        super().__init__(nombre_tipo, "xsd:float")
         
     def add_digitos_totales(self, digitos_totales):
         xsd_digitos="<xsd:totalDigits value=\"{0}\"/>"
@@ -66,6 +118,9 @@ class TipoSimpleFloatConRestriccion(TipoSimpleIntegerConRestriccion):
         xsd_digitos="<xsd:fractionDigits value=\"{0}\"/>"
         restriccion=xsd_digitos.format(digitos_decimales)
         self.restricciones.append(restriccion)
+
+
+        
         
 class TipoSimpleStringConPatron(TipoSimpleConRestriccion):
     def __init__(self, nombre_tipo):
@@ -94,6 +149,8 @@ class TipoAtributo(object):
         self.esquema=xsd_atributo.format(nombre_atributo, nombre_base)
     def get_esquema(self):
         return self.esquema
+    def get_esquema_alineado(self):
+        return get_esquema_alineado(self)
     
 class TipoComplejoConAtributos(object):
     def __init__(self, nombre_tipo, nombre_base, lista_atributos):
@@ -112,6 +169,43 @@ class TipoComplejoConAtributos(object):
         self.esquema=xsd.format(nombre_tipo, nombre_base, atributos)
     def get_esquema(self):
         return self.esquema
+    def get_esquema_alineado(self):
+        return get_esquema_alineado(self)
+
+class TipoNumericoConRestriccionesMasAtributos(TipoSimpleNumericoConRestriccion):
+    def __init__(self, nombre_tipo, nombre_base, lista_atributos):
+        nombre_tipo_restringido=nombre_tipo+"Restringido"
+        self.tipo_simple_restringido=TipoSimpleNumericoConRestriccion(nombre_tipo_restringido, nombre_base)
+        self.tipo_complejo_con_atributos=TipoComplejoConAtributos(
+            nombre_tipo, nombre_tipo_restringido, lista_atributos)
+    
+    def add_minInclusive(self, valor):
+        self.tipo_simple_restringido.add_minInclusive(valor)
+        
+    def add_maxInclusive(self, valor):
+        self.maximo=valor
+        xsd_maximo="<xsd:maxInclusive value=\"{0}\"/>"
+        restriccion=xsd_maximo.format(self.maximo)
+        self.restricciones.append(restriccion)
+        
+    def add_digitos_totales(self, digitos_totales):
+        xsd_digitos="<xsd:totalDigits value=\"{0}\"/>"
+        restriccion=xsd_digitos.format(digitos_totales)
+        self.restricciones.append(restriccion)
+        
+    def add_digitos_decimales(self, digitos_decimales):
+        xsd_digitos="<xsd:fractionDigits value=\"{0}\"/>"
+        restriccion=xsd_digitos.format(digitos_decimales)
+        self.restricciones.append(restriccion)
+        
+    def get_esquema(self):
+        esquema_simple=self.tipo_simple_restringido.get_esquema()
+        esquema_complejo=self.tipo_complejo_con_atributos.get_esquema()
+        return esquema_simple + esquema_complejo
+    def get_esquema_alineado(self):
+        esquema_simple_alineado=get_esquema_alineado(self.tipo_simple_restringido)
+        esquema_complejo=get_esquema_alineado(self.tipo_complejo_con_atributos)
+        return esquema_simple_alineado + "\n" + esquema_complejo
         
 class TipoComplejo(object):
     def __init__(self, nombre_tipo, restriccion, lista_atributos):
