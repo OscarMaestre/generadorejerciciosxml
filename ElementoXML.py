@@ -2,9 +2,7 @@
 #coding=utf-8
 
 ANY_TYPE="anyType"
-from xml.dom.minidom import parseString
-from bs4 import BeautifulSoup
-from lxml import etree
+
 
 
 def reemplazar_xsd(cadena):
@@ -29,34 +27,31 @@ def reemplazar_xsd(cadena):
         cadena=cadena.replace(r[0], r[1])
     return cadena
 
-def get_esquema_alineado3(objeto):
-    bs=BeautifulSoup(objeto.get_esquema(), 'xml')
-    cadena_xml= bs.prettify()
-    anadir_xsd=reemplazar_xsd(cadena_xml)
-    lineas=anadir_xsd.split("\n")
-    sin_prefijo="\n".join(lineas[1:])
-    return sin_prefijo
-
-def get_esquema_alineado2(objeto):
-    esquema=objeto.get_esquema()
-    root = etree.fromstring(esquema)
-    return etree.tostring(root, pretty_print=True)
-
 
 def get_esquema_alineado(objeto, separador="  "):
     esquema=objeto.get_esquema().strip()
     trozos=esquema.split(">")
     trozos_con_fin=[(t+">").strip() for t in trozos]
     trozos_esquema=trozos_con_fin[:-1]
-    nivel=-1
+    nivel=0
     cadena_esquema=""
     for t in trozos_esquema:
+        
         #Si es trozo de cierre
         if t[0:2]=="</":
             nivel=nivel-1
-        else:
-            nivel=nivel+1
+            cadena_esquema+=(separador*nivel) + t +"\n"
+            continue
+        if t[-2:]=="/>":
+            cadena_esquema+=(separador*nivel) + t +"\n"
+            continue
+        #En el resto de casos es una etiqueta de apertura,POR ESTE ORDEN
+        #anadimos e incrementmos
         cadena_esquema+=(separador*nivel) + t +"\n"
+        nivel=nivel+1
+        
+    #Fin del for
+        
     return cadena_esquema
     
     

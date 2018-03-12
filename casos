@@ -1,0 +1,50 @@
+<!--Numerico-->
+<modificacion_valor>-20.5</modificacion_valor>
+
+
+<!--Cadena-->
+<nombre>Juan</nombre>
+
+
+
+<!--Numerico con restriccion (p.ej min 18, max 125-->
+<!--TipoSimpleNumericoConRestriccion-->
+<edad>20</edad>
+
+<!--Cadena con restriccion enumeration FAB1, FAB2, FAB3-->
+<!--TipoSimpleStringConEnumeraciones-->
+<fabricante>FAB1</fabricante>
+
+<!--Cadena con restriccion pattern-->
+<!--TipoSimpleStringConPatron-->
+<codigo>AAA-333</codigo>
+
+
+<!--Numerico con atributos-->
+<!--TipoComplejoConAtributos-->
+<modificacion_valor autor="Luis">-20.5</modificacion_valor>
+
+<!--Cadena con atributos-->
+<!--TipoComplejoConAtributos-->
+<nombre edad="20">Juan</nombre>
+
+<!--Numerico con atributos + restriccion (p.ej min 18, max 125-->
+<edad persona="Pepe">20</edad>
+
+<!--Cadena con atributos + restriccion enumeration FAB1, FAB2, FAB3-->
+<fabricante codigo="888">FAB1</fabricante>
+
+<!--Cadena con atributos + restriccion pattern-->
+<codigo>AAA-333</codigo>
+
+<!--Elemento con lista de hijos y atributos-->
+<listaelementos fecha="ddeess">
+    <elemento></elemento>
+    <elemento></elemento>
+</listaelementos>
+
+<!--Elemento con choice y atributos-->
+<listaelementos>
+    <producto></producto>
+    <componente></componente>
+</listaelementos>
