@@ -37,3 +37,21 @@ print (prueba_peso.get_esquema_alineado())
 
 print("Otro ejemplo de alineacion")
 print (prueba_peso.get_esquema_alineado())
+
+
+
+string_con_atributos_y_restricciones=TipoCadenaConRestriccionesMasAtributos(
+    "tipoNombre", [prueba_atributo1, prueba_atributo2], TipoCadenaConRestriccionesMasAtributos.TIPO_RESTRICCION_ENUMERACION)
+
+string_con_atributos_y_restricciones.add_valores(["CAD1", "CAD2"])
+print(string_con_atributos_y_restricciones.get_esquema_alineado())
+
+
+
+
+string_con_atributos_y_restricciones=TipoCadenaConRestriccionesMasAtributos(
+    "tipoNombre", [prueba_atributo1, prueba_atributo2], TipoCadenaConRestriccionesMasAtributos.TIPO_RESTRICCION_PATRON)
+
+string_con_atributos_y_restricciones.add_patron("[0-9]{4,5}")
+string_con_atributos_y_restricciones.add_patron("[a-Z]{10}")
+print(string_con_atributos_y_restricciones.get_esquema_alineado())

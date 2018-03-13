@@ -202,6 +202,44 @@ class TipoNumericoConRestriccionesMasAtributos(TipoSimpleNumericoConRestriccion)
         esquema_complejo=get_esquema_alineado(self.tipo_complejo_con_atributos)
         return esquema_simple_alineado + "\n" + esquema_complejo
         
+class TipoCadenaConRestriccionesMasAtributos(object):
+    TIPO_RESTRICCION_ENUMERACION    = 1
+    TIPO_RESTRICCION_PATRON         = TIPO_RESTRICCION_ENUMERACION + 1
+    
+    def __init__(self, nombre_tipo,  lista_atributos, tipo_restriccion):
+        nombre_base="xsd:string"
+        nombre_tipo_restringido=nombre_tipo+"Restringido"
+        self.tipo_simple_restringido=None
+        self.tipo_restriccion = tipo_restriccion
+        if tipo_restriccion==TipoCadenaConRestriccionesMasAtributos.TIPO_RESTRICCION_ENUMERACION:
+            self.tipo_simple_restringido=TipoSimpleStringConEnumeraciones(nombre_tipo_restringido)
+        if tipo_restriccion==TipoCadenaConRestriccionesMasAtributos.TIPO_RESTRICCION_PATRON:
+            self.tipo_simple_restringido=TipoSimpleStringConPatron(nombre_tipo_restringido)
+            
+        self.tipo_complejo_con_atributos=TipoComplejoConAtributos(
+            nombre_tipo, nombre_tipo_restringido, lista_atributos)
+        
+    def get_esquema(self):
+        esquema_simple=self.tipo_simple_restringido.get_esquema()
+        esquema_complejo=self.tipo_complejo_con_atributos.get_esquema()
+        return esquema_simple + esquema_complejo
+    def get_esquema_alineado(self):
+        esquema_simple_alineado=get_esquema_alineado(self.tipo_simple_restringido)
+        esquema_complejo=get_esquema_alineado(self.tipo_complejo_con_atributos)
+        return esquema_simple_alineado + "\n" + esquema_complejo
+        
+    def add_valores(self, lista_valores):
+        if self.tipo_restriccion!=TipoCadenaConRestriccionesMasAtributos.TIPO_RESTRICCION_ENUMERACION:
+            print("Error, se esta intentando añadir enumeration y al crearlo se dijo que no sería de tipo enumeration")
+            raise Exception
+        self.tipo_simple_restringido.add_valores(lista_valores)
+        
+    def add_patron(self, patron):
+        if self.tipo_restriccion!=TipoCadenaConRestriccionesMasAtributos.TIPO_RESTRICCION_PATRON:
+            print("Error, se esta intentando añadir pattern y al crearlo se dijo que no sería de tipo pattern")
+            raise Exception
+        self.tipo_simple_restringido.add_patron(patron)
+        
 class TipoComplejo(object):
     def __init__(self, nombre_tipo, restriccion, lista_atributos):
         plantilla="""

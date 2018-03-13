@@ -32,9 +32,11 @@
 <edad persona="Pepe">20</edad>
 
 <!--Cadena con atributos + restriccion enumeration FAB1, FAB2, FAB3-->
+<!--TipoCadenaConRestriccionesMasAtributos-->
 <fabricante codigo="888">FAB1</fabricante>
 
 <!--Cadena con atributos + restriccion pattern-->
+<!--TipoCadenaConRestriccionesMasAtributos-->
 <codigo>AAA-333</codigo>
 
 <!--Elemento con lista de hijos y atributos-->
