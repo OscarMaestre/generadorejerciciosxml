@@ -29,6 +29,7 @@
 <nombre edad="20">Juan</nombre>
 
 <!--Numerico con atributos + restriccion (p.ej min 18, max 125-->
+<!--TipoNumericoConRestriccionesMasAtributos-->
 <edad persona="Pepe">20</edad>
 
 <!--Cadena con atributos + restriccion enumeration FAB1, FAB2, FAB3-->
